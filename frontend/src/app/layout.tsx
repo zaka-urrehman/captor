@@ -12,6 +12,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+
+
+
 export const metadata: Metadata = {
   title: "CAPTOR - Transform Your Intake With AI",
   description: "Streamline customer acquisition and data collection using intelligent conversational AI agents. Automate, analyze, and optimize with ease.",
