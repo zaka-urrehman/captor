@@ -20,15 +20,15 @@ const Navbar = () => {
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center space-x-8">
-                    <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
-                    <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">Pricing</a>
-                    <a href="#faq" className="text-gray-300 hover:text-white transition-colors">FAQ</a>
-                    <a href="#" className="text-gray-300 hover:text-white transition-colors">Login</a>
+                    <a href="#features" className="text-gray-300 hover:text-my-primary transition-colors">Features</a>
+                    <a href="#pricing" className="text-gray-300 hover:text-my-primary transition-colors">Pricing</a>
+                    <a href="#faq" className="text-gray-300 hover:text-my-primary transition-colors">FAQ</a>
+                    <a href="#" className="text-gray-300 hover:text-my-primary transition-colors">Login</a>
                 </div>
 
                 {/* Desktop Sign Up Button */}
-                <button className="hidden md:block bg-primary text-white px-6 py-2 rounded-full font-medium hover:bg-opacity-90 transition-colors">
-                    Sign Up
+                <button className="hidden md:block bg-my-primary/80 text-white px-6 py-2 rounded-full font-medium hover:bg-opacity-90 transition-colors">
+                    Get Started
                 </button>
 
                 {/* Mobile Hamburger Button */}
@@ -48,37 +48,37 @@ const Navbar = () => {
                 <div className="px-6 py-4 space-y-4">
                     <a
                         href="#features"
-                        className="block text-gray-300 hover:text-white transition-colors py-2"
+                        className="block text-gray-300 hover:text-my-primary transition-colors py-2"
                         onClick={() => setIsMenuOpen(false)}
                     >
                         Features
                     </a>
                     <a
                         href="#pricing"
-                        className="block text-gray-300 hover:text-white transition-colors py-2"
+                        className="block text-gray-300 hover:text-my-primary transition-colors py-2"
                         onClick={() => setIsMenuOpen(false)}
                     >
                         Pricing
                     </a>
                     <a
                         href="#faq"
-                        className="block text-gray-300 hover:text-white transition-colors py-2"
+                        className="block text-gray-300 hover:text-my-primary transition-colors py-2"
                         onClick={() => setIsMenuOpen(false)}
                     >
                         FAQ
                     </a>
                     <a
                         href="#"
-                        className="block text-gray-300 hover:text-white transition-colors py-2"
+                        className="block text-gray-300 hover:text-my-primary transition-colors py-2"
                         onClick={() => setIsMenuOpen(false)}
                     >
                         Login
                     </a>
                     <button
-                        className="w-full mt-4 bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-opacity-90 transition-colors"
+                        className="w-full mt-4 bg-my-primary/80 text-white px-6 py-3 rounded-full font-medium hover:bg-opacity-90 transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                     >
-                        Sign Up
+                        Get Started
                     </button>
                 </div>
             </div>
