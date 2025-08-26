@@ -2,10 +2,12 @@
 
 import Image from 'next/image';
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+    const router = useRouter();
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
@@ -27,9 +29,9 @@ const Navbar = () => {
                 </div>
 
                 {/* Desktop Sign Up Button */}
-                <button className="hidden md:block bg-my-primary/80 text-white px-6 py-2 rounded-full font-medium hover:bg-opacity-90 transition-colors">
+                <Link href={"/signup"} className="hidden md:block bg-my-primary/80 text-white px-6 py-2 rounded-full font-medium hover:bg-opacity-90 transition-colors">
                     Get Started
-                </button>
+                </Link>
 
                 {/* Mobile Hamburger Button */}
                 <button
@@ -76,7 +78,10 @@ const Navbar = () => {
                     </a>
                     <button
                         className="w-full mt-4 bg-my-primary/80 text-white px-6 py-3 rounded-full font-medium hover:bg-opacity-90 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
+                        onClick={() => {
+                            setIsMenuOpen(false);
+                            router.push("/signup");
+                        }}
                     >
                         Get Started
                     </button>

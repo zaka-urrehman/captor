@@ -1,9 +1,56 @@
+"use client";
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useAuth } from "@/hooks/useAuth"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function SignupPage() {
+  const { signup, isLoading, error } = useAuth();
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords don't match!");
+      return;
+    }
+
+    if (!agreeToTerms) {
+      alert("Please agree to the Terms of Service and Privacy Policy");
+      return;
+    }
+    
+    const result = await signup({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password
+    });
+    
+    if (result) {
+      // Redirect to login page or dashboard on successful signup
+      router.push("/login"); // Change this to your desired redirect path
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
   return (
     <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center">
       {/* Geometric background pattern */}
@@ -39,13 +86,24 @@ export default function SignupPage() {
           </div>
 
           {/* Form */}
-          <form className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
             {/* Full Name Input */}
             <div>
               <Input
                 type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
                 placeholder="Full Name"
                 className="w-full bg-black border-gray-600 text-white placeholder-gray-400 h-12 rounded-lg focus:border-purple-500 focus:ring-purple-500"
+                required
               />
             </div>
 
@@ -53,8 +111,12 @@ export default function SignupPage() {
             <div>
               <Input
                 type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
                 placeholder="name@example.com"
                 className="w-full bg-black border-gray-600 text-white placeholder-gray-400 h-12 rounded-lg focus:border-purple-500 focus:ring-purple-500"
+                required
               />
             </div>
 
@@ -62,8 +124,12 @@ export default function SignupPage() {
             <div>
               <Input
                 type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
                 placeholder="Create Password"
                 className="w-full bg-black border-gray-600 text-white placeholder-gray-400 h-12 rounded-lg focus:border-purple-500 focus:ring-purple-500"
+                required
               />
             </div>
 
@@ -71,8 +137,12 @@ export default function SignupPage() {
             <div>
               <Input
                 type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
                 placeholder="Confirm Password"
                 className="w-full bg-black border-gray-600 text-white placeholder-gray-400 h-12 rounded-lg focus:border-purple-500 focus:ring-purple-500"
+                required
               />
             </div>
 
@@ -80,6 +150,8 @@ export default function SignupPage() {
             <div className="flex items-start space-x-2">
               <Checkbox
                 id="terms"
+                checked={agreeToTerms}
+                onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
                 className="border-gray-600 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 mt-1"
               />
               <label htmlFor="terms" className="text-sm text-gray-300 leading-relaxed">
@@ -95,8 +167,12 @@ export default function SignupPage() {
             </div>
 
             {/* Signup Button */}
-            <Button className="w-full bg-my-primary/80 hover:bg-my-primary/60 cursor-pointer text-white h-12 rounded-lg font-medium">
-              Create Account
+            <Button 
+              type="submit"
+              disabled={isLoading || !agreeToTerms}
+              className="w-full bg-my-primary/80 hover:bg-my-primary/60 cursor-pointer text-white h-12 rounded-lg font-medium disabled:opacity-50"
+            >
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
 

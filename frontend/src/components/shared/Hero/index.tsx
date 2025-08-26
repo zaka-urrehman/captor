@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import React from 'react'
 
 const Hero = () => {
@@ -15,10 +16,11 @@ const Hero = () => {
                         optimize with ease.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <button className="bg-my-primary text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-opacity-90 transition-colors">
+                        <Link href={"/signup"} className="bg-my-primary text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-opacity-90 transition-colors">
                             Get Started Free
-                        </button>
-                        <button className="text-my-primary border border-my-primary px-8 py-4 rounded-full font-medium text-lg hover:bg-my-primary hover:text-white transition-colors">
+                            {/* </Link> */}
+                        </Link>
+                        <button disabled className="text-my-primary border border-my-primary px-8 py-4 rounded-full font-medium text-lg hover:bg-my-primary hover:text-white transition-colors">
                             Learn More →
                         </button>
                     </div>
