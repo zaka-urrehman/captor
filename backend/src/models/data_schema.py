@@ -57,43 +57,43 @@ class AgentDataFieldBase(SQLModel):
 
 class AgentDataField(AgentDataFieldBase, BaseTable, table=True):
     """Agent data field table for fields/questions inside schema."""
-    
+
     __tablename__ = "agent_data_fields"
-    
-    schem_id: int = Field(foreign_key="agent_data_schemas.id", nullable=False, index=True)
-    
+
+    schema_id: int = Field(foreign_key="agent_data_schemas.id", nullable=False, index=True)
+
     # Relationships
     data_schema: "AgentDataSchema" = Relationship(back_populates="fields")
 
 
 class AgentDataFieldCreate(AgentDataFieldBase):
     """Agent data field creation schema."""
-    
-    schem_id: int
+
+    # schema_id is set automatically by the server, no need to include it here
 
 
 class AgentDataFieldRead(AgentDataFieldBase):
     """Agent data field read schema."""
-    
+
     id: int
-    schem_id: int
+    schema_id: int
     created_at: str
 
 
 class CollectedDataBase(SQLModel):
     """Base collected data fields."""
-    
+
     responses: dict = Field(default_factory=dict, sa_column=Column(JSON))  # responses collected
 
 
 class CollectedData(CollectedDataBase, BaseTable, table=True):
     """Collected data table for data collected during sessions."""
-    
+
     __tablename__ = "collected_data"
-    
+
     session_id: int = Field(foreign_key="chat_sessions.id", nullable=False, index=True)
-    schem_id: int = Field(foreign_key="agent_data_schemas.id", nullable=False, index=True)
-    
+    schema_id: int = Field(foreign_key="agent_data_schemas.id", nullable=False, index=True)
+
     # Relationships
     session: "ChatSession" = Relationship(back_populates="collected_data")
     data_schema: "AgentDataSchema" = Relationship(back_populates="collected_data")
@@ -101,17 +101,17 @@ class CollectedData(CollectedDataBase, BaseTable, table=True):
 
 class CollectedDataCreate(CollectedDataBase):
     """Collected data creation schema."""
-    
+
     session_id: int
-    schem_id: int
+    schema_id: int
 
 
 class CollectedDataRead(CollectedDataBase):
     """Collected data read schema."""
-    
+
     id: int
     session_id: int
-    schem_id: int
+    schema_id: int
     created_at: str
 
 

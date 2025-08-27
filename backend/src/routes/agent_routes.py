@@ -33,7 +33,7 @@ def create_agent(
     current_user: Annotated[User, Depends(get_current_active_user)]
 ):
     """Create a new agent."""
-    return AgentController.create_agent(session, agent_create_data)
+    return AgentController.create_agent(session, agent_create_data, current_user.id)
 
 
 @router.put("/{agent_id}", response_model=APIResponse[AgentRead])

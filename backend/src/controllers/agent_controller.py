@@ -82,14 +82,14 @@ class AgentController:
         )
 
     @staticmethod
-    def create_agent(session: Session, agent_create: AgentCreate) -> APIResponse[AgentRead]:
+    def create_agent(session: Session, agent_create: AgentCreate, user_id: int) -> APIResponse[AgentRead]:
         """Create a new agent."""
 
         # 1. Create the Agent
         agent = Agent(
             name=agent_create.name,
             description=agent_create.description,
-            user_id=agent_create.user_id,
+            user_id=user_id,
             system_prompt=agent_create.system_prompt,
             user_instructions=agent_create.user_instructions,
             webhook_url=agent_create.webhook_url
@@ -122,14 +122,43 @@ class AgentController:
         session.commit()
         # session.refresh(agent_data_field)
 
-        # 4. Return agent details (can also include schema/fields if needed)
+        # 4. Refresh agent to load relationships and return agent details with schema/fields
+        session.refresh(agent)
+
         agent_data = AgentRead(
             id=agent.id,
             name=agent.name,
             description=agent.description,
+            user_id=agent.user_id,
             created_at=agent.created_at.isoformat(),
-            updated_at=agent.updated_at.isoformat() if agent.updated_at else None
+            updated_at=agent.updated_at.isoformat() if agent.updated_at else None,
+            data_schemas=[] # Initialize with empty list
         )
+
+        # Populate data_schemas and fields
+        for schema in agent.data_schemas:
+            schema_read = AgentDataSchemaRead(
+                id=schema.id,
+                agent_id=schema.agent_id,
+                type=schema.type,
+                created_at=schema.created_at.isoformat(),
+                fields=[] # Initialize with empty list
+            )
+
+            for field in schema.fields:
+                field_read = AgentDataFieldRead(
+                    id=field.id,
+                    schema_id=field.schema_id,
+                    key=field.key,
+                    question=field.question,
+                    data_type=field.data_type,
+                    required=field.required,
+                    validation_rules=field.validation_rules,
+                    created_at=field.created_at.isoformat()
+                )
+                schema_read.fields.append(field_read)
+
+            agent_data.data_schemas.append(schema_read)
 
         return success_response(
             data=agent_data,
@@ -174,6 +203,8 @@ class AgentController:
                     agent_data_field = session.get(AgentDataField, field_update.id)
                     if agent_data_field and agent_data_field.schema_id == current_schema.id:
                         field_data = field_update.model_dump(exclude_unset=True)
+                        # Exclude schema_id from updates since it should never be changed
+                        field_data = {k: v for k, v in field_data.items() if k != 'schema_id'}
                         for key, value in field_data.items():
                             setattr(agent_data_field, key, value)
                         session.add(agent_data_field)

@@ -39,8 +39,7 @@ class Agent(AgentBase, BaseTable, table=True):
 
 class AgentCreate(AgentBase):
     """Agent creation schema."""
-    
-    user_id: int 
+
     type: str = Field(max_length=20, nullable=False) # "qa" or "json"
     agent_data_fields: List["AgentDataFieldCreate"]
 
