@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from src.core.config import APP_NAME, DEBUG
-from src.routes import auth_routes, user_routes 
+from src.routes import auth_routes, user_routes, agent_routes
 from src.database import create_db_and_tables
 
 
@@ -39,6 +39,7 @@ app.add_middleware(
 # Include routers with prefixes
 app.include_router(auth_routes.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(user_routes.router, prefix="/api/users", tags=["users"])
+app.include_router(agent_routes.router, prefix="/api/agents", tags=["agents"])
 
 
 @app.get("/")

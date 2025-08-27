@@ -5,11 +5,11 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
 
-from ..database import get_session
-from ..models.user import User, UserRead, UserUpdate
-from ..core.dependencies import get_current_active_user
-from ..controllers.user_controller import UserController
-from ..core.responses import APIResponse, PaginatedResponse, MessageResponse
+from src.database import get_session
+from src.models.user import User, UserRead, UserUpdate
+from src.core.dependencies import get_current_active_user
+from src.controllers.user_controller import UserController
+from src.core.responses import APIResponse, PaginatedResponse, MessageResponse
 
 
 router = APIRouter()

@@ -5,10 +5,9 @@ from typing import List, Optional
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
-from ..models.user import User, UserRead, UserUpdate
-from ..core.auth import get_password_hash
-from ..core.responses import APIResponse, success_response, paginated_response, MessageResponse
-
+from src.models.user import User, UserRead, UserUpdate
+from src.core.auth import get_password_hash
+from src.core.responses import APIResponse, success_response, paginated_response, MessageResponse
 
 class UserController:
     """Controller for user operations."""

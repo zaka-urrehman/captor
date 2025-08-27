@@ -7,7 +7,7 @@ from sqlalchemy import JSON
 from .base import BaseTable
 
 if TYPE_CHECKING:
-    from .agent import Agent
+    from .agent import Agent, AgentRead
     from .chat import ChatSession
 
 
@@ -42,6 +42,7 @@ class AgentDataSchemaRead(AgentDataSchemaBase):
     id: int
     agent_id: int
     created_at: str
+    fields: List["AgentDataFieldRead"] = []
 
 
 class AgentDataFieldBase(SQLModel):
@@ -59,7 +60,7 @@ class AgentDataField(AgentDataFieldBase, BaseTable, table=True):
     
     __tablename__ = "agent_data_fields"
     
-    schema_id: int = Field(foreign_key="agent_data_schemas.id", nullable=False, index=True)
+    schem_id: int = Field(foreign_key="agent_data_schemas.id", nullable=False, index=True)
     
     # Relationships
     data_schema: "AgentDataSchema" = Relationship(back_populates="fields")
@@ -68,14 +69,14 @@ class AgentDataField(AgentDataFieldBase, BaseTable, table=True):
 class AgentDataFieldCreate(AgentDataFieldBase):
     """Agent data field creation schema."""
     
-    schema_id: int
+    schem_id: int
 
 
 class AgentDataFieldRead(AgentDataFieldBase):
     """Agent data field read schema."""
     
     id: int
-    schema_id: int
+    schem_id: int
     created_at: str
 
 
@@ -91,7 +92,7 @@ class CollectedData(CollectedDataBase, BaseTable, table=True):
     __tablename__ = "collected_data"
     
     session_id: int = Field(foreign_key="chat_sessions.id", nullable=False, index=True)
-    schema_id: int = Field(foreign_key="agent_data_schemas.id", nullable=False, index=True)
+    schem_id: int = Field(foreign_key="agent_data_schemas.id", nullable=False, index=True)
     
     # Relationships
     session: "ChatSession" = Relationship(back_populates="collected_data")
@@ -102,7 +103,7 @@ class CollectedDataCreate(CollectedDataBase):
     """Collected data creation schema."""
     
     session_id: int
-    schema_id: int
+    schem_id: int
 
 
 class CollectedDataRead(CollectedDataBase):
@@ -110,5 +111,25 @@ class CollectedDataRead(CollectedDataBase):
     
     id: int
     session_id: int
-    schema_id: int
+    schem_id: int
     created_at: str
+
+
+class AgentDataSchemaUpdate(SQLModel):
+    """Agent data schema update schema."""
+
+    type: Optional[str] = None
+
+
+class AgentDataFieldUpdate(SQLModel):
+    """Agent data field update schema."""
+
+    key: Optional[str] = None
+    question: Optional[str] = None
+    data_type: Optional[str] = None
+    required: Optional[bool] = None
+    validation_rules: Optional[dict] = None
+
+AgentDataSchema.model_rebuild()
+AgentDataField.model_rebuild()
+CollectedData.model_rebuild()

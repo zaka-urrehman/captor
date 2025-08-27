@@ -6,11 +6,11 @@ from fastapi import APIRouter, Depends, Form
 from sqlmodel import Session
 from pydantic import BaseModel
 
-from ..database import get_session
-from ..models.user import User, UserRead
-from ..core.dependencies import get_current_active_user
-from ..controllers.auth_controller import AuthController
-from ..core.responses import APIResponse
+from src.database import get_session
+from src.models.user import User, UserRead
+from src.core.dependencies import get_current_active_user
+from src.controllers.auth_controller import AuthController
+from src.core.responses import APIResponse
 
 
 router = APIRouter()
