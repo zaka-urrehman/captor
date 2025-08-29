@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { SignupRequest, LoginRequest, LoginResponse, SignupResponse } from "@/types/auth";
+import type { CreateAgentRequest, ApiEnvelope, AgentsResponse, CreateSessionRequest, ChatSessionResponse } from "@/types/agents";
 
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "http://localhost:8000",
@@ -90,6 +91,65 @@ export const authAPI = {
             localStorage.removeItem("token");
         }
     }
+};
+
+// 🔹 Agents API Functions
+export const agentsAPI = {
+    getAgents: async (): Promise<AgentsResponse> => {
+        try {
+            const response = await api.get('/api/agents')
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    },
+
+    createAgent: async (payload: CreateAgentRequest): Promise<ApiEnvelope> => {
+        try {
+            const response = await api.post('/api/agents/create-agent', payload)
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    },
+
+    deleteAgent: async (agentId: number): Promise<ApiEnvelope> => {
+        try {
+            const response = await api.delete(`/api/agents/${agentId}`)
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    },
+
+    addChatUrl: async (agentId: number, chatUrl: string): Promise<ApiEnvelope> => {
+        try {
+            const response = await api.post(`/api/agents/${agentId}/add-chat-url`, {
+                chat_url: chatUrl
+            })
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    },
+
+    deleteChatUrl: async (agentId: number): Promise<ApiEnvelope> => {
+        try {
+            const response = await api.delete(`/api/agents/${agentId}/chat-url`)
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    },
+
+    getOrCreateSession: async (requestData: CreateSessionRequest): Promise<ChatSessionResponse> => {
+        try {
+            const response = await api.post('/api/chat/get-or-create-session', requestData)
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    },
 };
 
 export default api;

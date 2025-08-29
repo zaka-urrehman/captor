@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { agentsAPI } from "@/lib/api"
+import type { CreateAgentRequest } from "@/types/agents"
 
 interface AgentDataField {
     key: string
@@ -27,6 +29,8 @@ interface CreateAgentModalProps {
 
 export default function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
     const [currentStep, setCurrentStep] = useState(1)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [submitError, setSubmitError] = useState<string | null>(null)
     const [formData, setFormData] = useState<AgentFormData>({
         name: "",
         systemPrompt: "",
@@ -88,37 +92,46 @@ export default function CreateAgentModal({ isOpen, onClose }: CreateAgentModalPr
         }
     }
 
-    const handleSubmit = () => {
-        // Construct the body for backend
-        const body = {
-            name: formData.name,
-            description: formData.description,
-            system_prompt: formData.systemPrompt,
-            user_instructions: formData.instructions,
-            webhook_url: "",
-            user_id: 0,
-            type: "question-answers",
-            agent_data_fields: formData.agentDataFields.map((field) => ({
-                key: field.key,
-                question: field.question,
-                data_type: field.data_type,
-                required: false,
-                validation_rules: {},
-                schem_id: 0,
-            })),
+    const handleSubmit = async () => {
+        setSubmitError(null)
+        setIsSubmitting(true)
+        try {
+            const body: CreateAgentRequest = {
+                name: formData.name,
+                description: formData.description,
+                system_prompt: formData.systemPrompt,
+                user_instructions: formData.instructions,
+                webhook_url: "",
+                type: "qa",
+                agent_data_fields: formData.agentDataFields.map((field) => ({
+                    key: field.key,
+                    question: field.question,
+                    data_type: field.data_type,
+                    required: true,
+                    validation_rules: {},
+                })),
+            }
+
+            const res = await agentsAPI.createAgent(body)
+            if (res?.success === false) {
+                throw new Error(res?.message || "Failed to create agent")
+            }
+
+            setFormData({
+                name: "",
+                systemPrompt: "",
+                instructions: "",
+                description: "",
+                agentDataFields: [],
+            })
+            setCurrentStep(1)
+            onClose()
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || err?.message || "Failed to create agent. Please try again."
+            setSubmitError(msg)
+        } finally {
+            setIsSubmitting(false)
         }
-        // Handle form submission here
-        console.log("Agent data:", body)
-        // Reset form and close modal
-        setFormData({
-            name: "",
-            systemPrompt: "",
-            instructions: "",
-            description: "",
-            agentDataFields: [],
-        })
-        setCurrentStep(1)
-        onClose()
     }
 
     const isStep1Valid = !!formData.name && !!formData.systemPrompt && !!formData.instructions && !!formData.description
@@ -288,6 +301,9 @@ export default function CreateAgentModal({ isOpen, onClose }: CreateAgentModalPr
                     </Button>
 
                     <div className="flex space-x-3">
+                        {submitError && (
+                            <span className="text-red-400 text-sm self-center mr-2">{submitError}</span>
+                        )}
                         {currentStep < totalSteps ? (
                             <Button
                                 onClick={handleNext}
@@ -300,10 +316,10 @@ export default function CreateAgentModal({ isOpen, onClose }: CreateAgentModalPr
                         ) : (
                             <Button
                                 onClick={handleSubmit}
-                                disabled={!isCurrentStepValid}
+                                disabled={!isCurrentStepValid || isSubmitting}
                                 className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
                             >
-                                Create Agent
+                                {isSubmitting ? "Creating..." : "Create Agent"}
                             </Button>
                         )}
                     </div>
