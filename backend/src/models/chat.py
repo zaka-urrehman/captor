@@ -9,28 +9,27 @@ from .base import BaseTable
 
 if TYPE_CHECKING:
     from .agent import Agent
-    from .customer import Customer
     from .data_schema import CollectedData
 
 
 class ChatSessionBase(SQLModel):
     """Base chat session fields."""
-    
+
     started_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     ended_at: Optional[datetime] = Field(default=None, nullable=True)
+    customer_name: Optional[str] = Field(default=None, max_length=255, nullable=True)
+    customer_email: Optional[str] = Field(default=None, max_length=255, nullable=True)
 
 
 class ChatSession(ChatSessionBase, BaseTable, table=True):
     """Chat session table for conversation instances between customer & agent."""
-    
+
     __tablename__ = "chat_sessions"
-    
+
     agent_id: int = Field(foreign_key="agents.id", nullable=False, index=True)
-    customer_id: int = Field(foreign_key="customers.id", nullable=False, index=True)
-    
+
     # Relationships
     agent: "Agent" = Relationship(back_populates="chat_sessions")
-    customer: "Customer" = Relationship(back_populates="chat_sessions")
     messages: List["Message"] = Relationship(back_populates="session")
     agent_outputs: List["AgentOutput"] = Relationship(back_populates="session")
     collected_data: List["CollectedData"] = Relationship(back_populates="session")
@@ -38,17 +37,15 @@ class ChatSession(ChatSessionBase, BaseTable, table=True):
 
 class ChatSessionCreate(ChatSessionBase):
     """Chat session creation schema."""
-    
+
     agent_id: int
-    customer_id: int
 
 
 class ChatSessionRead(ChatSessionBase):
     """Chat session read schema."""
-    
+
     id: int
     agent_id: int
-    customer_id: int
     created_at: str
     updated_at: Optional[str] = None
 

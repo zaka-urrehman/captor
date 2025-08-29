@@ -19,14 +19,13 @@ class CustomerBase(SQLModel):
 
 class Customer(CustomerBase, BaseTable, table=True):
     """Customer table for end-users who interact with agent links."""
-    
+
     __tablename__ = "customers"
-    
+
     agent_id: int = Field(foreign_key="agents.id", nullable=False, index=True)
-    
+
     # Relationships
     agent: "Agent" = Relationship(back_populates="customers")
-    chat_sessions: List["ChatSession"] = Relationship(back_populates="customer")
 
 
 class CustomerCreate(CustomerBase):

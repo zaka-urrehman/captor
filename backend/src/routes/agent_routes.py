@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
 
 from src.database import get_session
-from src.models.agent import Agent, AgentRead, AgentUpdate, AgentCreate
+from src.models.agent import Agent, AgentRead, AgentUpdate, AgentCreate, AgentChatUrlUpdate
 from src.models.user import User
 from src.core.dependencies import get_current_active_user
 from src.controllers.agent_controller import AgentController
@@ -55,3 +55,33 @@ def delete_agent(
 ):
     """Delete agent by ID."""
     return AgentController.delete_agent(session, agent_id)
+
+
+@router.get("/by-chat-url/{chat_url}", response_model=APIResponse[AgentRead])
+def get_agent_by_chat_url(
+    chat_url: str,
+    session: Annotated[Session, Depends(get_session)]
+):
+    """Get agent by chat URL."""
+    return AgentController.get_agent_by_chat_url(session, chat_url)
+
+
+@router.post("/{agent_id}/add-chat-url", response_model=APIResponse[AgentRead])
+def add_chat_url(
+    agent_id: int,
+    chat_url_data: AgentChatUrlUpdate,
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)]
+):
+    """Add chat URL to an agent."""
+    return AgentController.add_chat_url(session, agent_id, chat_url_data.chat_url, current_user.id)
+
+
+@router.delete("/{agent_id}/chat-url", response_model=APIResponse[AgentRead])
+def remove_chat_url(
+    agent_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_active_user)]
+):
+    """Remove chat URL from an agent."""
+    return AgentController.remove_chat_url(session, agent_id, current_user.id)

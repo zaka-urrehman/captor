@@ -27,7 +27,6 @@ class AgentDataSchema(AgentDataSchemaBase, BaseTable, table=True):
     # Relationships
     agent: "Agent" = Relationship(back_populates="data_schemas")
     fields: List["AgentDataField"] = Relationship(back_populates="data_schema")
-    collected_data: List["CollectedData"] = Relationship(back_populates="data_schema")
 
 
 class AgentDataSchemaCreate(AgentDataSchemaBase):
@@ -64,6 +63,7 @@ class AgentDataField(AgentDataFieldBase, BaseTable, table=True):
 
     # Relationships
     data_schema: "AgentDataSchema" = Relationship(back_populates="fields")
+    collected_data: List["CollectedData"] = Relationship(back_populates="field")
 
 
 class AgentDataFieldCreate(AgentDataFieldBase):
@@ -83,7 +83,7 @@ class AgentDataFieldRead(AgentDataFieldBase):
 class CollectedDataBase(SQLModel):
     """Base collected data fields."""
 
-    responses: dict = Field(default_factory=dict, sa_column=Column(JSON))  # responses collected
+    answer: str = Field(nullable=False)  # collected answer text
 
 
 class CollectedData(CollectedDataBase, BaseTable, table=True):
@@ -92,18 +92,18 @@ class CollectedData(CollectedDataBase, BaseTable, table=True):
     __tablename__ = "collected_data"
 
     session_id: int = Field(foreign_key="chat_sessions.id", nullable=False, index=True)
-    schema_id: int = Field(foreign_key="agent_data_schemas.id", nullable=False, index=True)
+    field_id: int = Field(foreign_key="agent_data_fields.id", nullable=False, index=True)
 
     # Relationships
     session: "ChatSession" = Relationship(back_populates="collected_data")
-    data_schema: "AgentDataSchema" = Relationship(back_populates="collected_data")
+    field: "AgentDataField" = Relationship(back_populates="collected_data")
 
 
 class CollectedDataCreate(CollectedDataBase):
     """Collected data creation schema."""
 
     session_id: int
-    schema_id: int
+    field_id: int
 
 
 class CollectedDataRead(CollectedDataBase):
@@ -111,7 +111,7 @@ class CollectedDataRead(CollectedDataBase):
 
     id: int
     session_id: int
-    schema_id: int
+    field_id: int
     created_at: str
 
 

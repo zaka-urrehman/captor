@@ -8,6 +8,7 @@ from sqlmodel import func
 from src.models.agent import Agent, AgentRead, AgentUpdate, AgentCreate
 from src.core.responses import APIResponse, success_response, paginated_response, MessageResponse
 from src.models.data_schema import AgentDataSchema, AgentDataField, AgentDataSchemaRead, AgentDataFieldRead, AgentDataSchemaUpdate, AgentDataFieldUpdate
+from src.models.chat import ChatSession, ChatSessionRead
 from src.core.responses import PaginatedResponse
 
 class AgentController:
@@ -41,10 +42,12 @@ class AgentController:
                 system_prompt=agent.system_prompt,
                 user_instructions=agent.user_instructions,
                 webhook_url=agent.webhook_url,
+                chat_url=agent.chat_url,
                 user_id=agent.user_id,
                 created_at=agent.created_at.isoformat(),
                 updated_at=agent.updated_at.isoformat() if agent.updated_at else None,
-                data_schemas=[] # Initialize with empty list
+                data_schemas=[], # Initialize with empty list
+                chat_sessions=[] # Initialize with empty list
             )
 
             # Manually load data_schemas and fields
@@ -71,8 +74,23 @@ class AgentController:
                     schema_read.fields.append(field_read)
 
                 agent_data.data_schemas.append(schema_read)
-            agents_data.append(agent_data)
 
+            # Manually load chat_sessions
+            for session in agent.chat_sessions:
+                session_read = ChatSessionRead(
+                    id=session.id,
+                    agent_id=session.agent_id,
+                    customer_name=session.customer_name,
+                    customer_email=session.customer_email,
+                    started_at=session.started_at.isoformat(),
+                    ended_at=session.ended_at.isoformat() if session.ended_at else None,
+                    created_at=session.created_at.isoformat(),
+                    updated_at=session.updated_at.isoformat() if session.updated_at else None
+                )
+                agent_data.chat_sessions.append(session_read)
+
+            agents_data.append(agent_data)
+        
         return paginated_response(
             data=agents_data,
             total=total,
@@ -80,7 +98,7 @@ class AgentController:
             page_size=limit,
             message="Agents retrieved successfully"
         )
-
+    
     @staticmethod
     def create_agent(session: Session, agent_create: AgentCreate, user_id: int) -> APIResponse[AgentRead]:
         """Create a new agent."""
@@ -93,6 +111,7 @@ class AgentController:
             system_prompt=agent_create.system_prompt,
             user_instructions=agent_create.user_instructions,
             webhook_url=agent_create.webhook_url
+            # chat_url is intentionally left out - will be null initially
         )
         session.add(agent)
         session.commit()
@@ -129,10 +148,15 @@ class AgentController:
             id=agent.id,
             name=agent.name,
             description=agent.description,
+            system_prompt=agent.system_prompt,
+            user_instructions=agent.user_instructions,
+            webhook_url=agent.webhook_url,
+            chat_url=agent.chat_url,
             user_id=agent.user_id,
             created_at=agent.created_at.isoformat(),
             updated_at=agent.updated_at.isoformat() if agent.updated_at else None,
-            data_schemas=[] # Initialize with empty list
+            data_schemas=[], # Initialize with empty list
+            chat_sessions=[] # Initialize with empty list
         )
 
         # Populate data_schemas and fields
@@ -160,6 +184,20 @@ class AgentController:
 
             agent_data.data_schemas.append(schema_read)
 
+        # Populate chat_sessions (initially empty for new agent)
+        for session in agent.chat_sessions:
+            session_read = ChatSessionRead(
+                id=session.id,
+                agent_id=session.agent_id,
+                customer_name=session.customer_name,
+                customer_email=session.customer_email,
+                started_at=session.started_at.isoformat(),
+                ended_at=session.ended_at.isoformat() if session.ended_at else None,
+                created_at=session.created_at.isoformat(),
+                updated_at=session.updated_at.isoformat() if session.updated_at else None
+            )
+            agent_data.chat_sessions.append(session_read)
+
         return success_response(
             data=agent_data,
             message="Agent created successfully"
@@ -176,12 +214,12 @@ class AgentController:
             )
         
         # Update agent fields
-        update_data = agent_update.model_dump(exclude_unset=True)
+        update_data = agent_update.model_dump(exclude_unset=True)        
         for field, value in update_data.items():
             if field not in ["type", "agent_data_fields"]:
                 setattr(agent, field, value)
-
-        session.add(agent)
+        
+        session.add(agent)  
         session.commit()
         session.refresh(agent)
 
@@ -220,7 +258,7 @@ class AgentController:
                     session.refresh(new_field)
 
         session.refresh(agent) # Refresh agent to load updated relationships
-
+        
         agent_data = AgentRead(
             id=agent.id,
             name=agent.name,
@@ -228,10 +266,12 @@ class AgentController:
             system_prompt=agent.system_prompt,
             user_instructions=agent.user_instructions,
             webhook_url=agent.webhook_url,
+            chat_url=agent.chat_url,
             user_id=agent.user_id,
             created_at=agent.created_at.isoformat(),
             updated_at=agent.updated_at.isoformat() if agent.updated_at else None,
-            data_schemas=[] # Re-initialize to populate with fresh data
+            data_schemas=[], # Re-initialize to populate with fresh data
+            chat_sessions=[] # Re-initialize to populate with fresh data
         )
 
         for schema in agent.data_schemas:
@@ -256,11 +296,25 @@ class AgentController:
                 schema_read.fields.append(field_read)
             agent_data.data_schemas.append(schema_read)
 
+        # Populate chat_sessions
+        for session in agent.chat_sessions:
+            session_read = ChatSessionRead(
+                id=session.id,
+                agent_id=session.agent_id,
+                customer_name=session.customer_name,
+                customer_email=session.customer_email,
+                started_at=session.started_at.isoformat(),
+                ended_at=session.ended_at.isoformat() if session.ended_at else None,
+                created_at=session.created_at.isoformat(),
+                updated_at=session.updated_at.isoformat() if session.updated_at else None
+            )
+            agent_data.chat_sessions.append(session_read)
+
         return success_response(
             data=agent_data,
             message="Agent updated successfully"
         )
-
+    
     @staticmethod
     def delete_agent(session: Session, agent_id: int) -> MessageResponse:
         """Delete agent."""
@@ -281,4 +335,245 @@ class AgentController:
         session.commit()
         
         return MessageResponse.success_message("Agent deleted successfully")
-    
+
+    @staticmethod
+    def get_agent_by_chat_url(session: Session, chat_url: str) -> APIResponse[AgentRead]:
+        """Get agent by chat URL."""
+        agent = session.exec(select(Agent).where(Agent.chat_url == chat_url)).first()
+        if not agent:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Agent not found"
+            )
+
+        agent_data = AgentRead(
+            id=agent.id,
+            name=agent.name,
+            description=agent.description,
+            system_prompt=agent.system_prompt,
+            user_instructions=agent.user_instructions,
+            webhook_url=agent.webhook_url,
+            chat_url=agent.chat_url,
+            user_id=agent.user_id,
+            created_at=agent.created_at.isoformat(),
+            updated_at=agent.updated_at.isoformat() if agent.updated_at else None,
+            data_schemas=[], # Initialize with empty list
+            chat_sessions=[] # Initialize with empty list
+        )
+
+        # Populate data_schemas and fields
+        for schema in agent.data_schemas:
+            schema_read = AgentDataSchemaRead(
+                id=schema.id,
+                agent_id=schema.agent_id,
+                type=schema.type,
+                created_at=schema.created_at.isoformat(),
+                fields=[] # Initialize with empty list
+            )
+
+            for field in schema.fields:
+                field_read = AgentDataFieldRead(
+                    id=field.id,
+                    schema_id=field.schema_id,
+                    key=field.key,
+                    question=field.question,
+                    data_type=field.data_type,
+                    required=field.required,
+                    validation_rules=field.validation_rules,
+                    created_at=field.created_at.isoformat()
+                )
+                schema_read.fields.append(field_read)
+
+            agent_data.data_schemas.append(schema_read)
+
+        # Populate chat_sessions
+        for session in agent.chat_sessions:
+            session_read = ChatSessionRead(
+                id=session.id,
+                agent_id=session.agent_id,
+                customer_name=session.customer_name,
+                customer_email=session.customer_email,
+                started_at=session.started_at.isoformat(),
+                ended_at=session.ended_at.isoformat() if session.ended_at else None,
+                created_at=session.created_at.isoformat(),
+                updated_at=session.updated_at.isoformat() if session.updated_at else None
+            )
+            agent_data.chat_sessions.append(session_read)
+
+        return success_response(
+            data=agent_data,
+            message="Agent retrieved successfully"
+        )
+
+    @staticmethod
+    def add_chat_url(session: Session, agent_id: int, chat_url: str, user_id: int) -> APIResponse[AgentRead]:
+        """Add chat URL to an agent."""
+        agent = session.get(Agent, agent_id)
+        if not agent:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Agent not found"
+            )
+
+        # Check if the agent belongs to the authenticated user
+        if agent.user_id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to modify this agent"
+            )
+
+        # Check if chat_url is already taken by another agent
+        existing_agent = session.exec(select(Agent).where(Agent.chat_url == chat_url)).first()
+        if existing_agent and existing_agent.id != agent_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Chat URL is already in use by another agent"
+            )
+
+        agent.chat_url = chat_url
+        session.add(agent)
+        session.commit()
+        session.refresh(agent)
+
+        # Return updated agent data
+        agent_data = AgentRead(
+            id=agent.id,
+            name=agent.name,
+            description=agent.description,
+            system_prompt=agent.system_prompt,
+            user_instructions=agent.user_instructions,
+            webhook_url=agent.webhook_url,
+            chat_url=agent.chat_url,
+            user_id=agent.user_id,
+            created_at=agent.created_at.isoformat(),
+            updated_at=agent.updated_at.isoformat() if agent.updated_at else None,
+            data_schemas=[], # Initialize with empty list
+            chat_sessions=[] # Initialize with empty list
+        )
+
+        # Populate data_schemas and fields
+        for schema in agent.data_schemas:
+            schema_read = AgentDataSchemaRead(
+                id=schema.id,
+                agent_id=schema.agent_id,
+                type=schema.type,
+                created_at=schema.created_at.isoformat(),
+                fields=[] # Initialize with empty list
+            )
+
+            for field in schema.fields:
+                field_read = AgentDataFieldRead(
+                    id=field.id,
+                    schema_id=field.schema_id,
+                    key=field.key,
+                    question=field.question,
+                    data_type=field.data_type,
+                    required=field.required,
+                    validation_rules=field.validation_rules,
+                    created_at=field.created_at.isoformat()
+                )
+                schema_read.fields.append(field_read)
+
+            agent_data.data_schemas.append(schema_read)
+
+        # Populate chat_sessions
+        for session in agent.chat_sessions:
+            session_read = ChatSessionRead(
+                id=session.id,
+                agent_id=session.agent_id,
+                customer_name=session.customer_name,
+                customer_email=session.customer_email,
+                started_at=session.started_at.isoformat(),
+                ended_at=session.ended_at.isoformat() if session.ended_at else None,
+                created_at=session.created_at.isoformat(),
+                updated_at=session.updated_at.isoformat() if session.updated_at else None
+            )
+            agent_data.chat_sessions.append(session_read)
+
+        return success_response(
+            data=agent_data,
+            message="Chat URL added successfully"
+        )
+
+    @staticmethod
+    def remove_chat_url(session: Session, agent_id: int, user_id: int) -> APIResponse[AgentRead]:
+        """Remove chat URL from an agent."""
+        agent = session.get(Agent, agent_id)
+        if not agent:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Agent not found"
+            )
+
+        # Check if the agent belongs to the authenticated user
+        if agent.user_id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to modify this agent"
+            )
+
+        agent.chat_url = None
+        session.add(agent)
+        session.commit()
+        session.refresh(agent)
+
+        # Return updated agent data
+        agent_data = AgentRead(
+            id=agent.id,
+            name=agent.name,
+            description=agent.description,
+            system_prompt=agent.system_prompt,
+            user_instructions=agent.user_instructions,
+            webhook_url=agent.webhook_url,
+            chat_url=agent.chat_url,
+            user_id=agent.user_id,
+            created_at=agent.created_at.isoformat(),
+            updated_at=agent.updated_at.isoformat() if agent.updated_at else None,
+            data_schemas=[], # Initialize with empty list
+            chat_sessions=[] # Initialize with empty list
+        )
+
+        # Populate data_schemas and fields
+        for schema in agent.data_schemas:
+            schema_read = AgentDataSchemaRead(
+                id=schema.id,
+                agent_id=schema.agent_id,
+                type=schema.type,
+                created_at=schema.created_at.isoformat(),
+                fields=[] # Initialize with empty list
+            )
+
+            for field in schema.fields:
+                field_read = AgentDataFieldRead(
+                    id=field.id,
+                    schema_id=field.schema_id,
+                    key=field.key,
+                    question=field.question,
+                    data_type=field.data_type,
+                    required=field.required,
+                    validation_rules=field.validation_rules,
+                    created_at=field.created_at.isoformat()
+                )
+                schema_read.fields.append(field_read)
+
+            agent_data.data_schemas.append(schema_read)
+
+        # Populate chat_sessions
+        for session in agent.chat_sessions:
+            session_read = ChatSessionRead(
+                id=session.id,
+                agent_id=session.agent_id,
+                customer_name=session.customer_name,
+                customer_email=session.customer_email,
+                started_at=session.started_at.isoformat(),
+                ended_at=session.ended_at.isoformat() if session.ended_at else None,
+                created_at=session.created_at.isoformat(),
+                updated_at=session.updated_at.isoformat() if session.updated_at else None
+            )
+            agent_data.chat_sessions.append(session_read)
+
+        return success_response(
+            data=agent_data,
+            message="Chat URL removed successfully"
+        )
+

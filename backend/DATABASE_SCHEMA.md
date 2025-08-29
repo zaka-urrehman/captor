@@ -27,6 +27,7 @@ AI agents created by users to interact with customers.
 - `system_prompt` - AI system instructions
 - `user_instructions` - Instructions for end-users
 - `webhook_url` - n8n webhook endpoint for integrations
+- `chat_url` - Unique URL for agent chat interface (nullable, starts as null, managed via dedicated API endpoints)
 - `created_at`, `updated_at` - Timestamps
 
 #### Customers
@@ -41,7 +42,8 @@ End-users who interact with agent links.
 Conversation instances between customers and agents.
 - `id` (Primary Key)
 - `agent_id` (Foreign Key → agents.id)
-- `customer_id` (Foreign Key → customers.id)
+- `customer_name` - Customer name (nullable)
+- `customer_email` - Customer email (nullable)
 - `started_at` - Session start time
 - `ended_at` - Session end time (nullable)
 - `created_at`, `updated_at` - Timestamps
@@ -83,26 +85,24 @@ Fields/questions within data collection schemas.
 - `created_at` - Timestamp
 
 #### Collected Data
-Data collected during chat sessions.
+Data collected during chat sessions (per question/field).
 - `id` (Primary Key)
 - `session_id` (Foreign Key → chat_sessions.id)
-- `schema_id` (Foreign Key → agent_data_schemas.id)
-- `responses` - JSON with collected data:
-  - For JSON mode: `{"email": "user@example.com", "budget": "5000"}`
-  - For Q&A mode: `{"q1": "answer1", "q2": "answer2"}`
+- `field_id` (Foreign Key → agent_data_fields.id)
+- `answer` - Text answer provided by the customer
 - `created_at` - Timestamp
 
 ## Relationships
 
 - Users have many Agents
 - Agents belong to Users and have many Customers, Chat Sessions, and Data Schemas
-- Customers belong to Agents and have many Chat Sessions
-- Chat Sessions belong to Agents and Customers, have many Messages, Agent Outputs, and Collected Data
+- Customers belong to Agents (independent of chat sessions)
+- Chat Sessions belong to Agents, have many Messages, Agent Outputs, and Collected Data
 - Messages belong to Chat Sessions
 - Agent Outputs belong to Chat Sessions
-- Data Schemas belong to Agents and have many Data Fields and Collected Data
-- Data Fields belong to Data Schemas
-- Collected Data belongs to Chat Sessions and Data Schemas
+- Data Schemas belong to Agents and have many Data Fields
+- Data Fields belong to Data Schemas and have many Collected Data entries
+- Collected Data belongs to Chat Sessions and Data Fields (one answer per field per session)
 
 ## File Structure
 
