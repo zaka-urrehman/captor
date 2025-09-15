@@ -502,14 +502,14 @@ export default function AgentsPage() {
                                             </label>
                                             <div className="flex items-center space-x-2">
                                                 <Input
-                                                    value={generatedUrl || `https://example.com/chat/${selectedAgentForUrl.id}`}
+                                                    value={generatedUrl || `${process.env.NEXT_PUBLIC_BASE_URL}/chat/${selectedAgentForUrl.id}`}
                                                     readOnly
                                                     className="bg-gray-800 border-gray-600 text-gray-300"
                                                 />
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => copyToClipboard(generatedUrl || `https://example.com/chat/${selectedAgentForUrl.id}`)}
+                                                    onClick={() => copyToClipboard(generatedUrl || `${process.env.NEXT_PUBLIC_BASE_URL}/chat/${selectedAgentForUrl.id}`)}
                                                     disabled={addingChatUrl || deletingChatUrl}
                                                     className="shrink-0 bg-gray-200 cursor-pointer"
                                                 >

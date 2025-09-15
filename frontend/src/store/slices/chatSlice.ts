@@ -4,17 +4,18 @@ import type {
     ChatMessage,
     ChatCustomer,
     ChatSession,
-    CollectedData
+    CollectedData,
+    Agent
 } from '@/types/agents'
+
+type AgentWithoutSessions = Omit<Agent, 'chat_sessions'>
 
 interface ChatState {
     // Session data
     sessionData: ChatSessionResponse | null
-    customer: ChatCustomer | null
-    session: ChatSession | null
-    messages: ChatMessage[]
-    collectedData: CollectedData[]
-    isNewSession: boolean
+
+    // Agent data
+    agent: AgentWithoutSessions | null
 
     // Loading states
     isLoading: boolean
@@ -23,11 +24,7 @@ interface ChatState {
 
 const initialState: ChatState = {
     sessionData: null,
-    customer: null,
-    session: null,
-    messages: [],
-    collectedData: [],
-    isNewSession: false,
+    agent: null,
     isLoading: false,
     error: null,
 }
@@ -38,11 +35,6 @@ const chatSlice = createSlice({
     reducers: {
         setSessionData: (state, action: PayloadAction<ChatSessionResponse>) => {
             state.sessionData = action.payload
-            state.customer = action.payload.customer
-            state.session = action.payload.session
-            state.messages = action.payload.messages
-            state.collectedData = action.payload.collected_data
-            state.isNewSession = action.payload.is_new_session
             state.isLoading = false
             state.error = null
         },
@@ -56,33 +48,49 @@ const chatSlice = createSlice({
             state.isLoading = false
         },
 
-        addMessage: (state, action: PayloadAction<ChatMessage>) => {
-            state.messages.push(action.payload)
+        setAgentData: (state, action: PayloadAction<AgentWithoutSessions>) => {
+            state.agent = action.payload
         },
 
-        updateCollectedData: (state, action: PayloadAction<CollectedData>) => {
-            const existingIndex = state.collectedData.findIndex(
-                item => item.field_id === action.payload.field_id
-            )
-            if (existingIndex >= 0) {
-                state.collectedData[existingIndex] = action.payload
-            } else {
-                state.collectedData.push(action.payload)
+        addMessage: (state, action: PayloadAction<ChatMessage>) => {
+            if (state.sessionData) {
+                state.sessionData.messages.push(action.payload)
             }
         },
 
-        clearSession: (state) => {
-            state.sessionData = null
-            state.customer = null
-            state.session = null
-            state.messages = []
-            state.collectedData = []
-            state.isNewSession = false
-            state.isLoading = false
-            state.error = null
+        updateCollectedData: (state, action: PayloadAction<CollectedData>) => {
+            if (state.sessionData) {
+                const existingIndex = state.sessionData.collected_data.findIndex(
+                    item => item.field_id === action.payload.field_id
+                )
+                if (existingIndex >= 0) {
+                    state.sessionData.collected_data[existingIndex] = action.payload
+                } else {
+                    state.sessionData.collected_data.push(action.payload)
+                }
+            }
         },
 
-        initializeStore: (state) => {
+        appendCollectedData: (state, action: PayloadAction<CollectedData>) => {
+            if (state.sessionData) {
+                state.sessionData.collected_data.push(action.payload)
+            }
+        },
+
+        updateSessionClosed: (state, action: PayloadAction<boolean>) => {
+            if (state.sessionData?.session) {
+                state.sessionData.session.session_closed = action.payload
+            }
+        },
+
+        clearSession: () => ({
+            sessionData: null,
+            agent: null,
+            isLoading: false,
+            error: null
+        }),
+
+        initializeStore: () => {
             // Initialize action for Redux DevTools
             console.log('Chat store initialized')
         },
@@ -93,10 +101,15 @@ export const {
     setSessionData,
     setLoading,
     setError,
+    setAgentData,
     addMessage,
     updateCollectedData,
+    appendCollectedData,
+    updateSessionClosed,
     clearSession,
     initializeStore,
 } = chatSlice.actions
+
+export type { AgentWithoutSessions }
 
 export default chatSlice.reducer

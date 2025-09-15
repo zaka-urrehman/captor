@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import DashboardSidebar from "@/components/shared/dashboard/Sidebar"
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function DashboardLayout({
     children,
@@ -40,7 +41,7 @@ export default function DashboardLayout({
                     <div className="flex items-center justify-between">
                         {/* Logo */}
                         <div className="flex items-center space-x-2">
-                            <div className="text-purple-400 text-xl font-bold">✱ logo</div>
+                            <Image src="/logos/simple_logo.png" alt="logo" width={60} height={60} />
                         </div>
 
                         {/* Search and Actions */}

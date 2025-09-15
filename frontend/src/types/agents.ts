@@ -35,7 +35,7 @@ export interface AgentDataSchema {
     fields: AgentDataField[]
 }
 
-export interface ChatSession {
+export interface AgentChatSession {
     id: number
     agent_id: number
     user_id: number
@@ -56,7 +56,7 @@ export interface Agent {
     created_at: string
     updated_at: string | null
     data_schemas: AgentDataSchema[]
-    chat_sessions: ChatSession[]
+    chat_sessions: AgentChatSession[]
 }
 
 export interface AgentsResponse {
@@ -99,6 +99,7 @@ export interface ChatSession {
     agent_id: number
     created_at: string
     updated_at: string | null
+    session_closed: boolean
 }
 
 export interface ChatMessage {

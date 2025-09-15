@@ -1,6 +1,7 @@
 import axios from "axios";
 import type { SignupRequest, LoginRequest, LoginResponse, SignupResponse } from "@/types/auth";
-import type { CreateAgentRequest, ApiEnvelope, AgentsResponse, CreateSessionRequest, ChatSessionResponse } from "@/types/agents";
+import type { CreateAgentRequest, ApiEnvelope, AgentsResponse, CreateSessionRequest, ChatSessionResponse, Agent } from "@/types/agents";
+import type { ConversationsResponse, SessionDetailsResponse } from "@/types/general";
 
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "http://localhost:8000",
@@ -104,6 +105,15 @@ export const agentsAPI = {
         }
     },
 
+    getAgent: async (agentId: number): Promise<ApiEnvelope<Agent>> => {
+        try {
+            const response = await api.get(`/api/agents/${agentId}`)
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    },
+
     createAgent: async (payload: CreateAgentRequest): Promise<ApiEnvelope> => {
         try {
             const response = await api.post('/api/agents/create-agent', payload)
@@ -150,6 +160,96 @@ export const agentsAPI = {
             throw error
         }
     },
+
+    appendFirstMessage: async (messageData: {
+        sender: string
+        receiver: string
+        session_id: number
+        content: string
+    }): Promise<{ created_at: string; id: number }> => {
+        try {
+            const response = await api.post('/api/chat/append-first-message', messageData)
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    },
+
+    sendWebhookMessage: async (webhookData: {
+        customer: {
+            name: string
+            email: string
+            id: number
+            agent_id: number
+            created_at: string
+        }
+        session: {
+            started_at: string
+            ended_at: string | null
+            customer_name: string
+            customer_email: string
+            id: number
+            agent_id: number
+            created_at: string
+            updated_at: string | null
+        }
+        messages: {
+            sender: string
+            receiver: string
+            content: string
+            id: number
+            session_id: number
+            created_at: string
+        }[]
+        collected_data: {
+            answer: string
+            id: number
+            session_id: number
+            field_id: number
+            created_at: string
+        }[]
+        is_new_session: boolean
+        user_message: string
+    }): Promise<unknown> => {
+        try {
+            const webhookUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL
+            if (!webhookUrl) {
+                throw new Error('N8N webhook URL not configured')
+            }
+            // Create a separate axios instance without credentials for webhook
+            const webhookApi = axios.create({
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                withCredentials: false, // Explicitly disable credentials
+            })
+            const response = await webhookApi.post(webhookUrl, webhookData)
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    },
 };
+
+// 🔹 Conversations / Chat API Functions
+export const chatAPI = {
+    getConversations: async (): Promise<ConversationsResponse> => {
+        try {
+            const response = await api.get('/api/chat/get-conversations')
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    },
+
+    getSessionDetails: async (sessionId: number): Promise<SessionDetailsResponse> => {
+        try {
+            const response = await api.post('/api/chat/get-session-details', { session_id: sessionId })
+            return response.data
+        } catch (error) {
+            throw error
+        }
+    }
+}
 
 export default api;
