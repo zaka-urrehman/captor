@@ -98,7 +98,79 @@ class AgentController:
             page_size=limit,
             message="Agents retrieved successfully"
         )
-    
+
+    @staticmethod
+    def get_agent_by_id(session: Session, agent_id: int) -> APIResponse[AgentRead]:
+        """Get a single agent by ID with all related data (public endpoint)."""
+
+        # Get the agent
+        agent = session.get(Agent, agent_id)
+        if not agent:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Agent not found"
+            )
+
+        # Create agent data with empty lists for relationships
+        agent_data = AgentRead(
+            id=agent.id,
+            name=agent.name,
+            description=agent.description,
+            system_prompt=agent.system_prompt,
+            user_instructions=agent.user_instructions,
+            webhook_url=agent.webhook_url,
+            chat_url=agent.chat_url,
+            user_id=agent.user_id,
+            created_at=agent.created_at.isoformat(),
+            updated_at=agent.updated_at.isoformat() if agent.updated_at else None,
+            data_schemas=[], # Initialize with empty list
+            chat_sessions=[] # Initialize with empty list
+        )
+
+        # Populate data_schemas and fields
+        for schema in agent.data_schemas:
+            schema_read = AgentDataSchemaRead(
+                id=schema.id,
+                agent_id=schema.agent_id,
+                type=schema.type,
+                created_at=schema.created_at.isoformat(),
+                fields=[] # Initialize with empty list
+            )
+
+            for field in schema.fields:
+                field_read = AgentDataFieldRead(
+                    id=field.id,
+                    schema_id=field.schema_id,
+                    key=field.key,
+                    question=field.question,
+                    data_type=field.data_type,
+                    required=field.required,
+                    validation_rules=field.validation_rules,
+                    created_at=field.created_at.isoformat()
+                )
+                schema_read.fields.append(field_read)
+
+            agent_data.data_schemas.append(schema_read)
+
+        # Populate chat_sessions
+        for session_obj in agent.chat_sessions:
+            session_read = ChatSessionRead(
+                id=session_obj.id,
+                agent_id=session_obj.agent_id,
+                customer_name=session_obj.customer_name,
+                customer_email=session_obj.customer_email,
+                started_at=session_obj.started_at.isoformat(),
+                ended_at=session_obj.ended_at.isoformat() if session_obj.ended_at else None,
+                created_at=session_obj.created_at.isoformat(),
+                updated_at=session_obj.updated_at.isoformat() if session_obj.updated_at else None
+            )
+            agent_data.chat_sessions.append(session_read)
+
+        return success_response(
+            data=agent_data,
+            message="Agent retrieved successfully"
+        )
+
     @staticmethod
     def create_agent(session: Session, agent_create: AgentCreate, user_id: int) -> APIResponse[AgentRead]:
         """Create a new agent."""

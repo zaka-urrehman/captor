@@ -19,6 +19,7 @@ class ChatSessionBase(SQLModel):
     ended_at: Optional[datetime] = Field(default=None, nullable=True)
     customer_name: Optional[str] = Field(default=None, max_length=255, nullable=True)
     customer_email: Optional[str] = Field(default=None, max_length=255, nullable=True)
+    session_closed: bool = Field(default=False, nullable=False)
 
 
 class ChatSession(ChatSessionBase, BaseTable, table=True):

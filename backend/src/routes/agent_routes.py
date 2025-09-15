@@ -36,6 +36,15 @@ def create_agent(
     return AgentController.create_agent(session, agent_create_data, current_user.id)
 
 
+@router.get("/{agent_id}", response_model=APIResponse[AgentRead])
+def get_agent_by_id(
+    agent_id: int,
+    session: Annotated[Session, Depends(get_session)]
+):
+    """Get agent by ID (public endpoint)."""
+    return AgentController.get_agent_by_id(session, agent_id)
+
+
 @router.put("/{agent_id}", response_model=APIResponse[AgentRead])
 def update_agent(
     agent_id: int,
