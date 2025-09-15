@@ -2,8 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import type {
     ChatSessionResponse,
     ChatMessage,
-    ChatCustomer,
-    ChatSession,
+
     CollectedData,
     Agent
 } from '@/types/agents'

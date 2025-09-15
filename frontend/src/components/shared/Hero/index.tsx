@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 
@@ -25,33 +26,10 @@ const Hero = () => {
                         </button>
                     </div>
                 </div>
-                <div className="relative">
-                    <div className="bg-white rounded-2xl p-8 shadow-2xl">
-                        <div className="flex items-center space-x-4 mb-6">
-                            <div className="w-12 h-12 bg-gradient-to-r from-teal-400 to-blue-500 rounded-lg flex items-center justify-center">
-                                <div className="w-8 h-8 bg-white rounded opacity-30"></div>
-                            </div>
-                            <div>
-                                <div className="w-24 h-3 bg-gray-200 rounded mb-2"></div>
-                                <div className="w-16 h-2 bg-gray-100 rounded"></div>
-                            </div>
-                        </div>
-                        <div className="space-y-3 mb-6">
-                            <div className="w-full h-2 bg-gray-100 rounded"></div>
-                            <div className="w-3/4 h-2 bg-gray-100 rounded"></div>
-                            <div className="w-1/2 h-2 bg-gray-100 rounded"></div>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <div className="flex space-x-2">
-                                <div className="w-8 h-8 bg-gray-100 rounded-full"></div>
-                                <div className="w-8 h-8 bg-gray-100 rounded-full"></div>
-                            </div>
-                            <div className="w-20 h-8 bg-my-primary rounded-lg opacity-20"></div>
-                        </div>
-                        {/* Person illustration placeholder */}
-                        <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full"></div>
-                    </div>
-                </div>
+               <div className='relative'>
+                <Image src="/images/hero-image.png" alt="hero" width={600} height={600} className='rounded-xl' />
+
+               </div>
             </div>
         </section>
     )
