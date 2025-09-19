@@ -354,7 +354,7 @@ export default function ChatPage({ params }: ChatPageProps) {
 
     // Main chat interface
     return (
-        <div className="flex flex-col h-screen bg-gray-900">
+        <div suppressHydrationWarning={true} className="flex flex-col h-screen bg-gray-900">
             {/* Header */}
             <div className="bg-gray-800 border-b border-gray-700 p-4">
                 <div className="flex items-center justify-between">
@@ -464,7 +464,7 @@ export default function ChatPage({ params }: ChatPageProps) {
             )} */}
 
             {/* Message Input */}
-            <div className="bg-gray-800 border-t border-gray-700 p-4">
+            <div className="bg-gray-800 border-t border-gray-700 p-4 mb-10">
                 <div className="flex items-center space-x-2">
                     <Input
                         value={inputMessage}
